@@ -1,10 +1,7 @@
 package com.lxgy.spark.dao.impl;
 
 
-import com.lxgy.spark.dao.ISessionAggrStatDAO;
-import com.lxgy.spark.dao.ISessionDetailDAO;
-import com.lxgy.spark.dao.ISessionRandomExtractDAO;
-import com.lxgy.spark.dao.ITaskDAO;
+import com.lxgy.spark.dao.*;
 
 /**
  * DAO工厂类
@@ -48,6 +45,15 @@ public class DAOFactory {
      */
     public static ISessionDetailDAO getSessionDetailDAO() {
         return new SessionDetailDAOImpl();
+    }
+
+    /**
+     * 获取Top10 DAO
+     *
+     * @return DAO
+     */
+    public static ITop10CategoryDAO getTop10CategoryDAO() {
+        return new Top10CategoryDAOImpl();
     }
 
 }

@@ -29,6 +29,11 @@ public interface Constants {
     String FIELD_STEP_LENGTH = "stepLength";
     String FIELD_START_TIME = "startTime";
 
+    String FIELD_COUNT_CATEGORY_ID = "categoryId";
+    String FIELD_COUNT_CLICK_CATEGORY = "clickCategory";
+    String FIELD_COUNT_ORDER_CATEGORY = "orderCategory";
+    String FIELD_COUNT_PAY_CATEGORY = "payCategory";
+
 
     String PARAM_START_DATE = "startDate";
     String PARAM_END_DATE = "endDate";
@@ -58,6 +63,10 @@ public interface Constants {
      * 下划线 _
      */
     String SPLIT_SYMBAL_UNDERLINE_BAR = "_";
+    /**
+     * 逗号 ,
+     */
+    String SPLIT_SYMBAL_COMMA = ",";
 
     String SESSION_COUNT = "session_count";
     String TIME_PERIOD_1s_3s = "1s_3s";
