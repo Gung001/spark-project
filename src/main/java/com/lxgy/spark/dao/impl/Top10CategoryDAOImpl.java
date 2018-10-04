@@ -12,11 +12,6 @@ import com.lxgy.spark.jdbc.JDBCHelper;
  */
 public class Top10CategoryDAOImpl implements ITop10CategoryDAO {
 
-    /**
-     * 插入session随机抽取
-     *
-     * @param top10Category
-     */
     @Override
     public void insert(Top10Category top10Category) {
         String sql = "insert into top10_category values(?,?,?,?,?)";
