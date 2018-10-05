@@ -13,6 +13,8 @@ import com.lxgy.spark.dao.impl.DAOFactory;
 import com.lxgy.spark.domain.*;
 import com.lxgy.spark.mock.MockData;
 import com.lxgy.spark.utils.*;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
@@ -67,7 +69,10 @@ public class UserVisitSessionAnalyzeSpark {
                 .setAppName(Constants.SPARK_APP_NAME)
                 .setMaster("local")
                 .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-                .registerKryoClasses(new Class[]{CategorySortKey.class});
+                .registerKryoClasses(new Class[]{
+                        CategorySortKey.class,
+                        IntList.class
+                });
         /**
          * registerKryoClasses
          * 为了使 KryoSerializer 达到最佳性能，需要注册我们自定义的类，比如：CategorySortKey
@@ -890,8 +895,32 @@ public class UserVisitSessionAnalyzeSpark {
             }
         }
 
+        // fastutil的使用，比如：List<Integer>的list --> IntList
+        Map<String, Map<String, IntList>> fastutilDateHourExtractMap = new HashMap<>();
+        for (Map.Entry<String, Map<String, List<Integer>>> dateHourExtractEntry : dateHourExtractMap.entrySet()) {
+            String date = dateHourExtractEntry.getKey();
+            Map<String, List<Integer>> hourExtractMap = dateHourExtractEntry.getValue();
+
+            Map<String, IntList> fastutilHourExtractMap = new HashMap<>();
+            for (Map.Entry<String, List<Integer>> hourExtractEntry : hourExtractMap.entrySet()) {
+                String hour = hourExtractEntry.getKey();
+                List<Integer> extractList = hourExtractEntry.getValue();
+
+                IntList fastutilExtractList = new IntArrayList();
+                for (int i = 0; i < extractList.size(); i++) {
+                    fastutilExtractList.add(extractList.get(i));
+                }
+
+                fastutilHourExtractMap.put(hour, fastutilExtractList);
+            }
+
+            fastutilDateHourExtractMap.put(date, fastutilHourExtractMap);
+        }
+
+
         // 广播 dateHourExtractMap 变量，注意理解背后的原理
-        final Broadcast<Map<String, Map<String, List<Integer>>>> dateHourExtractMapBroadcast = sc.broadcast(dateHourExtractMap);
+        final Broadcast<Map<String, Map<String, IntList>>>
+                dateHourExtractMapBroadcast = sc.broadcast(fastutilDateHourExtractMap);
 
 
 
@@ -927,7 +956,7 @@ public class UserVisitSessionAnalyzeSpark {
                          * 使用广播变量
                          * 直接调用广播变量的value()方法
                          */
-                        Map<String, Map<String, List<Integer>>> dateHourExtractMap = dateHourExtractMapBroadcast.value();
+                        Map<String, Map<String, IntList>> dateHourExtractMap = dateHourExtractMapBroadcast.value();
 
                         List<Integer> extractIndexList = dateHourExtractMap.get(date).get(hour);
 
