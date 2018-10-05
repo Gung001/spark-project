@@ -21,6 +21,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.*;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
@@ -54,7 +55,7 @@ import java.util.*;
  * <p>
  * 这是spark本身提供的特性
  *
- * @author Administrator
+ * @author Gryant
  */
 public class UserVisitSessionAnalyzeSpark {
 
@@ -64,7 +65,15 @@ public class UserVisitSessionAnalyzeSpark {
         // 构建Spark上下文
         SparkConf conf = new SparkConf()
                 .setAppName(Constants.SPARK_APP_NAME)
-                .setMaster("local");
+                .setMaster("local")
+                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+                .registerKryoClasses(new Class[]{CategorySortKey.class});
+        /**
+         * registerKryoClasses
+         * 为了使 KryoSerializer 达到最佳性能，需要注册我们自定义的类，比如：CategorySortKey
+         * CategorySortKey 在进行shuffle的时候，进行网络传输，因此也是要求实现序列化的
+         */
+
         JavaSparkContext sc = new JavaSparkContext(conf);
         SQLContext sqlContext = getSQLContext(sc.sc());
 
@@ -156,7 +165,7 @@ public class UserVisitSessionAnalyzeSpark {
          * 将随机抽取的功能的实现代码放在session聚合统计功能的最终计算和写库之前，因为随机抽取功能中，有一个groupByKey算子
          * 是action操作，会促发job
          */
-        randomExtractSession(task.getTaskId(), filteredSessionid2AggrInfoRDD, sessionId2detailRDD);
+        randomExtractSession(sc, task.getTaskId(), filteredSessionid2AggrInfoRDD, sessionId2detailRDD);
 
         // 计算出各个范围的session占比，并写入Mysql
         calculateAndPersistAggrStat(sessionAggrStatAccumulator.value(), task.getTaskId());
@@ -777,7 +786,11 @@ public class UserVisitSessionAnalyzeSpark {
      * @param sessionid2AggrInfoRDD
      * @param sessionId2ActionRDD
      */
-    private static void randomExtractSession(final Integer taskId, JavaPairRDD<String, String> sessionid2AggrInfoRDD, JavaPairRDD<String, Row> sessionId2ActionRDD) {
+    private static void randomExtractSession(
+            JavaSparkContext sc,
+            final Integer taskId,
+            JavaPairRDD<String, String> sessionid2AggrInfoRDD,
+            JavaPairRDD<String, Row> sessionId2ActionRDD) {
 
         // 第一步，计算出每天每小时的session数量，获取<yyyy-MM-dd_HH,aggrInfo>RDD
         JavaPairRDD<String, String> time2aggrInfoRDD = sessionid2AggrInfoRDD.mapToPair(
@@ -821,6 +834,12 @@ public class UserVisitSessionAnalyzeSpark {
 
         Random random = new Random();
 
+        /***
+         * session 随机抽取功能
+         *
+         * 用了一个比较大的变量，随机抽取索引map
+         * 之前是直接在算子里面使用了这个map，那么根据原理可知，每个task都会拷贝一份map副本，消耗内存和网络传输性能
+         */
         // <date,<hour,(3,5,10)>>
         final Map<String, Map<String, List<Integer>>> dateHourExtractMap = new HashMap<String, Map<String, List<Integer>>>();
         for (Map.Entry<String, Map<String, Long>> dateHourCountEntry : dateHourCountMap.entrySet()) {
@@ -871,6 +890,11 @@ public class UserVisitSessionAnalyzeSpark {
             }
         }
 
+        // 广播 dateHourExtractMap 变量，注意理解背后的原理
+        final Broadcast<Map<String, Map<String, List<Integer>>>> dateHourExtractMapBroadcast = sc.broadcast(dateHourExtractMap);
+
+
+
         // 第三步，遍历每天每小时的，然后根据随机索引进行抽取
         // 执行 groupByKey 算子，得到<dataHour,(session aggrInfo)>
         JavaPairRDD<String, Iterable<String>> time2sessionsRDD = time2aggrInfoRDD.groupByKey();
@@ -898,6 +922,12 @@ public class UserVisitSessionAnalyzeSpark {
                         String hour = dateHour.split(Constants.SPLIT_SYMBAL_UNDERLINE_BAR)[1];
 
                         Iterator<String> iterator = tuple2._2.iterator();
+
+                        /**
+                         * 使用广播变量
+                         * 直接调用广播变量的value()方法
+                         */
+                        Map<String, Map<String, List<Integer>>> dateHourExtractMap = dateHourExtractMapBroadcast.value();
 
                         List<Integer> extractIndexList = dateHourExtractMap.get(date).get(hour);
 
@@ -1128,7 +1158,8 @@ public class UserVisitSessionAnalyzeSpark {
     /**
      * 对行为数据按session粒度进行聚合
      *
-     * @param actionRDD 行为数据RDD
+     * @param sqlContext
+     * @param sessionid2ActionRDD 行为数据RDD
      * @return session粒度聚合数据
      */
     private static JavaPairRDD<String, String> aggregateBySession(
