@@ -858,7 +858,6 @@ public class UserVisitSessionAnalyzeSpark {
                     }
                 });
 
-
         JavaPairRDD<Long, Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
                 new Function2<Long, Long, Long>() {
                     @Override
@@ -867,6 +866,19 @@ public class UserVisitSessionAnalyzeSpark {
                     }
                 }
         );
+
+        /**
+         * 有可能出现数据倾斜
+         *
+         * 提升shuffle reduce端并行度
+         */
+//        JavaPairRDD<Long, Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1 + v2;
+//                    }
+//                },1000);
 
         return clickCategoryId2CountRDD;
     }
@@ -1014,7 +1026,12 @@ public class UserVisitSessionAnalyzeSpark {
                         return list;
                     }
                 });
+
         // 得到每小时的session数量
+
+        /**
+         * countByKey 有可能出现数据倾斜的，比如：大部分小时都是几万，但是到高峰期上百万
+         */
         Map<String, Object> countByKey = time2aggrInfoRDD.countByKey();
 
         // 第二步，使用按时间比例随机抽取算法，计算出每天每小时抽取session的索引
