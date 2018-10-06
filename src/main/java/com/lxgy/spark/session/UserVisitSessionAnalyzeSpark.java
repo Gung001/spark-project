@@ -97,6 +97,10 @@ public class UserVisitSessionAnalyzeSpark {
          */
 
         JavaSparkContext sc = new JavaSparkContext(conf);
+
+        // 设置checkpoint机制，文件存储在HDFS上的路径
+//        sc.checkpointFile("hdfs://")
+
         SQLContext sqlContext = getSQLContext(sc.sc());
 
         // 生成模拟测试数据
@@ -132,6 +136,10 @@ public class UserVisitSessionAnalyzeSpark {
          * StorageLevel.MEMORY_ONLY_2()
          */
         sessionId2ActionRDD = sessionId2ActionRDD.persist(StorageLevel.MEMORY_ONLY());
+
+        // RDD checkpoint
+//        sessionId2ActionRDD.checkpoint();
+
 
         // 首先，可以将行为数据，按照session_id进行groupByKey分组
         // 此时的数据的粒度就是session粒度了，然后呢，可以将session粒度的数据
