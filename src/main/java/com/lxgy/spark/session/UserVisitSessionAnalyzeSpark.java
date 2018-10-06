@@ -1687,6 +1687,88 @@ public class UserVisitSessionAnalyzeSpark {
 //                    }
 //                });
 
+        /**
+         * sample 采样倾斜key单独进行join
+         */
+//        // 抽取10%的数据
+//        JavaPairRDD<Long, String> sampleRDD = userid2PartAggrInfoRDD.sample(false, 0.1, 9);
+//
+//        JavaPairRDD<Long, Long> mappedSampledRDD = sampleRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<Long, String> tuple) throws Exception {
+//                        return new Tuple2<>(tuple._1, 1L);
+//                    }
+//        });
+//
+//        JavaPairRDD<Long, Long> computedSampledRDD = mappedSampledRDD.reduceByKey(new Function2<Long, Long, Long>() {
+//            @Override
+//            public Long call(Long v1, Long v2) throws Exception {
+//                return v1 + v2;
+//            }
+//        });
+//        // 反转，为了排序获取排名第一的key
+//        JavaPairRDD<Long, Long> reversedSampleRDD = computedSampledRDD.mapToPair(new PairFunction<Tuple2<Long, Long>, Long, Long>() {
+//            @Override
+//            public Tuple2<Long, Long> call(Tuple2<Long, Long> tuple) throws Exception {
+//                return new Tuple2<>(tuple._2, tuple._1);
+//            }
+//        });
+//        // 获取可能发生数据倾斜的key
+//        final Long skewedUserId = reversedSampleRDD.sortByKey(false).take(1).get(0)._2;
+//
+//        JavaPairRDD<Long, String> skewedRDD = userid2PartAggrInfoRDD.filter(
+//                new Function<Tuple2<Long, String>, Boolean>() {
+//                    @Override
+//                    public Boolean call(Tuple2<Long, String> tuple) throws Exception {
+//                        return tuple._1.equals(skewedUserId);
+//                    }
+//        });
+//
+//        JavaPairRDD<Long, String> commonRDD = userid2PartAggrInfoRDD.filter(
+//                new Function<Tuple2<Long, String>, Boolean>() {
+//                    @Override
+//                    public Boolean call(Tuple2<Long, String> tuple) throws Exception {
+//                        return !tuple._1.equals(skewedUserId);
+//                    }
+//        });
+//
+//        JavaPairRDD<Long, Tuple2<String, Row>> skewed2userInfoRDD = skewedRDD.join(userid2InfoRDD);
+//        JavaPairRDD<Long, Tuple2<String, Row>> common2userInfoRDD = commonRDD.join(userid2InfoRDD);
+//        JavaPairRDD<Long, Tuple2<String, Row>> unionRDD = skewed2userInfoRDD.union(common2userInfoRDD);
+//
+//        JavaPairRDD<String, String> sessionid2FullAggrInfoRDD = unionRDD.mapToPair(
+//
+//                new PairFunction<Tuple2<Long, Tuple2<String, Row>>, String, String>() {
+//
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public Tuple2<String, String> call(
+//                            Tuple2<Long, Tuple2<String, Row>> tuple)
+//                            throws Exception {
+//                        String partAggrInfo = tuple._2._1;
+//                        Row userInfoRow = tuple._2._2;
+//
+//                        String sessionid = StringUtils.getFieldFromConcatString(
+//                                partAggrInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_SESSION_ID);
+//
+//                        int age = userInfoRow.getInt(3);
+//                        String professional = userInfoRow.getString(4);
+//                        String city = userInfoRow.getString(5);
+//                        String sex = userInfoRow.getString(6);
+//
+//                        String fullAggrInfo = partAggrInfo + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_AGE + Constants.SYMBAL_EQUALS_SIGN + age + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_PROFESSIONAL + Constants.SYMBAL_EQUALS_SIGN + professional + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_CITY + Constants.SYMBAL_EQUALS_SIGN + city + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_SEX + Constants.SYMBAL_EQUALS_SIGN + sex;
+//
+//                        return new Tuple2<String, String>(sessionid, fullAggrInfo);
+//                    }
+//
+//                });
+
 
         return sessionid2FullAggrInfoRDD;
     }
