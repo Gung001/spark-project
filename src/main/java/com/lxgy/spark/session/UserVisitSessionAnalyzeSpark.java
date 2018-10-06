@@ -320,13 +320,26 @@ public class UserVisitSessionAnalyzeSpark {
 
         JavaPairRDD<Long, String> top10CategorySessionCountRDD =
                 top10CategoryIdRDD.join(categoryId2sessionCountRDD)
-                        .mapToPair(new PairFunction<Tuple2<Long, Tuple2<Long, String>>, Long, String>() {
-                            @Override
-                            public Tuple2<Long, String> call(Tuple2<Long, Tuple2<Long, String>> tuple) throws Exception {
-                                return new Tuple2<>(tuple._1, tuple._2._2);
-                            }
-                        });
+//                        .mapToPair(new PairFunction<Tuple2<Long, Tuple2<Long, String>>, Long, String>() {
+//                            @Override
+//                            public Tuple2<Long, String> call(Tuple2<Long, Tuple2<Long, String>> tuple) throws Exception {
+//                                return new Tuple2<>(tuple._1, tuple._2._2);
+//                            }
+//                        });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<Long, Tuple2<Long, String>>>, Long, String>() {
+                    @Override
+                    public Iterable<Tuple2<Long, String>> call(Iterator<Tuple2<Long, Tuple2<Long, String>>> iterator) throws Exception {
 
+                        List<Tuple2<Long, String>> list = new ArrayList<>();
+
+                        while (iterator.hasNext()) {
+                            Tuple2<Long, Tuple2<Long, String>> tuple = iterator.next();
+                            list.add(new Tuple2<>(tuple._1, tuple._2._2));
+                        }
+
+                        return list;
+                    }
+                });
 
         /**
          * 第三步：分组取topN算法实现，获取每个品类的top10活跃用户
@@ -521,19 +534,39 @@ public class UserVisitSessionAnalyzeSpark {
         /**
          * 第五步：将数据映射成为<CategorySortKey,info>格式的RDD进行二次排序(降序)
          */
-        JavaPairRDD<CategorySortKey, String> sortKey2CountRDD = category2CountRDD.mapToPair(
-                new PairFunction<Tuple2<Long, String>, CategorySortKey, String>() {
+        JavaPairRDD<CategorySortKey, String> sortKey2CountRDD = category2CountRDD
+//                .mapToPair(new PairFunction<Tuple2<Long, String>, CategorySortKey, String>() {
+//                    @Override
+//                    public Tuple2<CategorySortKey, String> call(Tuple2<Long, String> tuple) throws Exception {
+//
+//                        String countInfo = tuple._2;
+//                        Long clickCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_CLICK_CATEGORY));
+//                        Long orderCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_ORDER_CATEGORY));
+//                        Long payCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_PAY_CATEGORY));
+//
+//                        CategorySortKey categorySortKey = new CategorySortKey(clickCount, orderCount, payCount);
+//
+//                        return new Tuple2<>(categorySortKey, countInfo);
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<Long, String>>, CategorySortKey, String>() {
                     @Override
-                    public Tuple2<CategorySortKey, String> call(Tuple2<Long, String> tuple) throws Exception {
+                    public Iterable<Tuple2<CategorySortKey, String>> call(Iterator<Tuple2<Long, String>> iterator) throws Exception {
+                        List<Tuple2<CategorySortKey, String>> list = new ArrayList<>();
 
-                        String countInfo = tuple._2;
-                        Long clickCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_CLICK_CATEGORY));
-                        Long orderCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_ORDER_CATEGORY));
-                        Long payCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_PAY_CATEGORY));
+                        while (iterator.hasNext()) {
+                            Tuple2<Long, String> tuple = iterator.next();
+                            String countInfo = tuple._2;
+                            Long clickCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_CLICK_CATEGORY));
+                            Long orderCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_ORDER_CATEGORY));
+                            Long payCount = Long.valueOf(StringUtils.getFieldFromConcatString(countInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_COUNT_PAY_CATEGORY));
 
-                        CategorySortKey categorySortKey = new CategorySortKey(clickCount, orderCount, payCount);
+                            CategorySortKey categorySortKey = new CategorySortKey(clickCount, orderCount, payCount);
 
-                        return new Tuple2<>(categorySortKey, countInfo);
+                            list.add(new Tuple2<>(categorySortKey, countInfo));
+                        }
+
+                        return list;
                     }
                 });
 
@@ -571,10 +604,24 @@ public class UserVisitSessionAnalyzeSpark {
             JavaPairRDD<String, Row> sessionId2ActionRDD) {
         return sessionid2AggrInfoRDD
                 .join(sessionId2ActionRDD)
-                .mapToPair(new PairFunction<Tuple2<String, Tuple2<String, Row>>, String, Row>() {
+//                .mapToPair(new PairFunction<Tuple2<String, Tuple2<String, Row>>, String, Row>() {
+//                    @Override
+//                    public Tuple2<String, Row> call(Tuple2<String, Tuple2<String, Row>> tuple) throws Exception {
+//                        return new Tuple2<>(tuple._1, tuple._2._2);
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<String, Tuple2<String, Row>>>, String, Row>() {
                     @Override
-                    public Tuple2<String, Row> call(Tuple2<String, Tuple2<String, Row>> tuple) throws Exception {
-                        return new Tuple2<>(tuple._1, tuple._2._2);
+                    public Iterable<Tuple2<String, Row>> call(Iterator<Tuple2<String, Tuple2<String, Row>>> iterator) throws Exception {
+                        List<Tuple2<String, Row>> list = new ArrayList<>();
+
+
+                        while (iterator.hasNext()) {
+                            Tuple2<String, Tuple2<String, Row>> tuple = iterator.next();
+                            list.add(new Tuple2<>(tuple._1, tuple._2._2));
+                        }
+
+                        return list;
                     }
                 });
     }
@@ -598,69 +645,143 @@ public class UserVisitSessionAnalyzeSpark {
         JavaPairRDD<Long, Tuple2<Long, Optional<Long>>> tmpJoinRDD = categoryIdRDD
                 .leftOuterJoin(clickCategoryCount);
 
-        JavaPairRDD<Long, String> tmpMapRDD = tmpJoinRDD.mapToPair(
-                new PairFunction<Tuple2<Long, Tuple2<Long, Optional<Long>>>, Long, String>() {
+        JavaPairRDD<Long, String> tmpMapRDD = tmpJoinRDD
+//                .mapToPair(new PairFunction<Tuple2<Long, Tuple2<Long, Optional<Long>>>, Long, String>() {
+//                    @Override
+//                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<Long, Optional<Long>>> tuple) throws Exception {
+//                        Long categoryId = tuple._1;
+//                        Optional<Long> optional = tuple._2._2;
+//                        Long count = 0L;
+//                        if (optional.isPresent()) {
+//                            count = optional.get();
+//                        }
+//
+//                        StringBuffer sb = new StringBuffer();
+//                        sb.append(Constants.FIELD_COUNT_CATEGORY_ID).append(Constants.SYMBAL_EQUALS_SIGN).append(categoryId).append(Constants.SYMBAL_VERTICAL_BAR);
+//                        sb.append(Constants.FIELD_COUNT_CLICK_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(count).append(Constants.SYMBAL_VERTICAL_BAR);
+//
+//                        return new Tuple2<>(categoryId, sb.toString());
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<Long, Tuple2<Long, Optional<Long>>>>, Long, String>() {
                     @Override
-                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<Long, Optional<Long>>> tuple) throws Exception {
-                        Long categoryId = tuple._1;
-                        Optional<Long> optional = tuple._2._2;
-                        Long count = 0L;
-                        if (optional.isPresent()) {
-                            count = optional.get();
+                    public Iterable<Tuple2<Long, String>> call(Iterator<Tuple2<Long, Tuple2<Long, Optional<Long>>>> iterator) throws Exception {
+
+                        List<Tuple2<Long, String>> list = new ArrayList<>();
+
+                        while (iterator.hasNext()) {
+                            Tuple2<Long, Tuple2<Long, Optional<Long>>> tuple = iterator.next();
+                            Long categoryId = tuple._1;
+                            Optional<Long> optional = tuple._2._2;
+                            Long count = 0L;
+                            if (optional.isPresent()) {
+                                count = optional.get();
+                            }
+
+                            StringBuffer sb = new StringBuffer();
+                            sb.append(Constants.FIELD_COUNT_CATEGORY_ID).append(Constants.SYMBAL_EQUALS_SIGN).append(categoryId).append(Constants.SYMBAL_VERTICAL_BAR);
+                            sb.append(Constants.FIELD_COUNT_CLICK_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(count).append(Constants.SYMBAL_VERTICAL_BAR);
+
+                            list.add(new Tuple2<>(categoryId, sb.toString()));
+
                         }
 
-                        StringBuffer sb = new StringBuffer();
-                        sb.append(Constants.FIELD_COUNT_CATEGORY_ID).append(Constants.SYMBAL_EQUALS_SIGN).append(categoryId).append(Constants.SYMBAL_VERTICAL_BAR);
-                        sb.append(Constants.FIELD_COUNT_CLICK_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(count).append(Constants.SYMBAL_VERTICAL_BAR);
-
-                        return new Tuple2<>(categoryId, sb.toString());
+                        return list;
                     }
-                }
-        );
+                });
 
         // join 下单品类次数
-        tmpMapRDD = tmpMapRDD.leftOuterJoin(orderCategoryCount).mapToPair(
-                new PairFunction<Tuple2<Long, Tuple2<String, Optional<Long>>>, Long, String>() {
+        tmpMapRDD = tmpMapRDD.leftOuterJoin(orderCategoryCount)
+//                .mapToPair(new PairFunction<Tuple2<Long, Tuple2<String, Optional<Long>>>, Long, String>() {
+//                    @Override
+//                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<String, Optional<Long>>> tuple) throws Exception {
+//
+//                        Long categoryId = tuple._1;
+//                        String value = tuple._2._1;
+//                        Optional<Long> optional = tuple._2._2;
+//                        Long orderCount = 0L;
+//                        if (optional.isPresent()) {
+//                            orderCount = optional.get();
+//                        }
+//
+//                        StringBuffer sb = new StringBuffer(value);
+//                        sb.append(Constants.FIELD_COUNT_ORDER_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(orderCount).append(Constants.SYMBAL_VERTICAL_BAR);
+//
+//                        return new Tuple2<>(categoryId, sb.toString());
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<Long, Tuple2<String, Optional<Long>>>>, Long, String>() {
                     @Override
-                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<String, Optional<Long>>> tuple) throws Exception {
+                    public Iterable<Tuple2<Long, String>> call(Iterator<Tuple2<Long, Tuple2<String, Optional<Long>>>> iterator) throws Exception {
 
-                        Long categoryId = tuple._1;
-                        String value = tuple._2._1;
-                        Optional<Long> optional = tuple._2._2;
-                        Long orderCount = 0L;
-                        if (optional.isPresent()) {
-                            orderCount = optional.get();
+                        List<Tuple2<Long, String>> list = new ArrayList<>();
+
+                        while (iterator.hasNext()) {
+                            Tuple2<Long, Tuple2<String, Optional<Long>>> tuple = iterator.next();
+                            Long categoryId = tuple._1;
+                            String value = tuple._2._1;
+                            Optional<Long> optional = tuple._2._2;
+                            Long orderCount = 0L;
+                            if (optional.isPresent()) {
+                                orderCount = optional.get();
+                            }
+
+                            StringBuffer sb = new StringBuffer(value);
+                            sb.append(Constants.FIELD_COUNT_ORDER_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(orderCount).append(Constants.SYMBAL_VERTICAL_BAR);
+
+                            list.add(new Tuple2<>(categoryId, sb.toString()));
                         }
 
-                        StringBuffer sb = new StringBuffer(value);
-                        sb.append(Constants.FIELD_COUNT_ORDER_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(orderCount).append(Constants.SYMBAL_VERTICAL_BAR);
-
-                        return new Tuple2<>(categoryId, sb.toString());
+                        return list;
                     }
-                }
-        );
+                });
 
         // join 支付品类次数
-        tmpMapRDD = tmpMapRDD.leftOuterJoin(payCategoryCount).mapToPair(
-                new PairFunction<Tuple2<Long, Tuple2<String, Optional<Long>>>, Long, String>() {
+        tmpMapRDD = tmpMapRDD.leftOuterJoin(payCategoryCount)
+//                .mapToPair(new PairFunction<Tuple2<Long, Tuple2<String, Optional<Long>>>, Long, String>() {
+//                    @Override
+//                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<String, Optional<Long>>> tuple) throws Exception {
+//
+//                        Long categoryId = tuple._1;
+//                        String value = tuple._2._1;
+//                        Optional<Long> optional = tuple._2._2;
+//                        Long payCount = 0L;
+//                        if (optional.isPresent()) {
+//                            payCount = optional.get();
+//                        }
+//
+//                        StringBuffer sb = new StringBuffer(value);
+//                        sb.append(Constants.FIELD_COUNT_PAY_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(payCount).append(Constants.SYMBAL_VERTICAL_BAR);
+//
+//                        return new Tuple2<>(categoryId, sb.toString());
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<Long, Tuple2<String, Optional<Long>>>>, Long, String>() {
                     @Override
-                    public Tuple2<Long, String> call(Tuple2<Long, Tuple2<String, Optional<Long>>> tuple) throws Exception {
+                    public Iterable<Tuple2<Long, String>> call(Iterator<Tuple2<Long, Tuple2<String, Optional<Long>>>> iterator) throws Exception {
 
-                        Long categoryId = tuple._1;
-                        String value = tuple._2._1;
-                        Optional<Long> optional = tuple._2._2;
-                        Long payCount = 0L;
-                        if (optional.isPresent()) {
-                            payCount = optional.get();
+                        List<Tuple2<Long, String>> list = new ArrayList<>();
+
+                        while (iterator.hasNext()) {
+                            Tuple2<Long, Tuple2<String, Optional<Long>>> tuple = iterator.next();
+
+                            Long categoryId = tuple._1;
+                            String value = tuple._2._1;
+                            Optional<Long> optional = tuple._2._2;
+                            Long payCount = 0L;
+                            if (optional.isPresent()) {
+                                payCount = optional.get();
+                            }
+
+                            StringBuffer sb = new StringBuffer(value);
+                            sb.append(Constants.FIELD_COUNT_PAY_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(payCount).append(Constants.SYMBAL_VERTICAL_BAR);
+
+                            list.add(new Tuple2<>(categoryId, sb.toString()));
                         }
 
-                        StringBuffer sb = new StringBuffer(value);
-                        sb.append(Constants.FIELD_COUNT_PAY_CATEGORY).append(Constants.SYMBAL_EQUALS_SIGN).append(payCount).append(Constants.SYMBAL_VERTICAL_BAR);
-
-                        return new Tuple2<>(categoryId, sb.toString());
+                        return list;
                     }
-                }
-        );
+                });
 
         return tmpMapRDD;
     }
@@ -684,15 +805,29 @@ public class UserVisitSessionAnalyzeSpark {
                 });
 
 
-        JavaPairRDD<Long, Long> clickCategoryIdRDD = clickActionRDD.mapToPair(
-                new PairFunction<Tuple2<String, Row>, Long, Long>() {
+        JavaPairRDD<Long, Long> clickCategoryIdRDD = clickActionRDD
+//                .mapToPair(new PairFunction<Tuple2<String, Row>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<String, Row> tuple) throws Exception {
+//                        long clickCategoryId = tuple._2.getLong(6);
+//                        return new Tuple2<>(clickCategoryId, 1L);
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<String, Row>>, Long, Long>() {
                     @Override
-                    public Tuple2<Long, Long> call(Tuple2<String, Row> tuple) throws Exception {
-                        long clickCategoryId = tuple._2.getLong(6);
-                        return new Tuple2<>(clickCategoryId, 1L);
+                    public Iterable<Tuple2<Long, Long>> call(Iterator<Tuple2<String, Row>> iterator) throws Exception {
+
+                        List<Tuple2<Long, Long>> list = new ArrayList<>();
+
+                        while (iterator.hasNext()) {
+                            Tuple2<String, Row> tuple = iterator.next();
+                            long clickCategoryId = tuple._2.getLong(6);
+                            list.add(new Tuple2<>(clickCategoryId, 1L));
+                        }
+
+                        return list;
                     }
-                }
-        );
+                });
 
 
         JavaPairRDD<Long, Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
@@ -784,10 +919,21 @@ public class UserVisitSessionAnalyzeSpark {
      * @return
      */
     private static JavaPairRDD<String, Row> getSessionId2ActionRDD(JavaRDD<Row> actionRDD) {
-        return actionRDD.mapToPair(new PairFunction<Row, String, Row>() {
+//        return actionRDD.mapToPair(new PairFunction<Row, String, Row>() {
+//            @Override
+//            public Tuple2<String, Row> call(Row row) throws Exception {
+//                return new Tuple2<String, Row>(row.getString(2), row);
+//            }
+//        });
+        return actionRDD.mapPartitionsToPair(new PairFlatMapFunction<Iterator<Row>, String, Row>() {
             @Override
-            public Tuple2<String, Row> call(Row row) throws Exception {
-                return new Tuple2<String, Row>(row.getString(2), row);
+            public Iterable<Tuple2<String, Row>> call(Iterator<Row> iterator) throws Exception {
+                List<Tuple2<String, Row>> list = new ArrayList<>();
+                while (iterator.hasNext()) {
+                    Row row = iterator.next();
+                    list.add(new Tuple2<String, Row>(row.getString(2), row));
+                }
+                return list;
             }
         });
     }
@@ -806,17 +952,37 @@ public class UserVisitSessionAnalyzeSpark {
             JavaPairRDD<String, Row> sessionId2ActionRDD) {
 
         // 第一步，计算出每天每小时的session数量，获取<yyyy-MM-dd_HH,aggrInfo>RDD
-        JavaPairRDD<String, String> time2aggrInfoRDD = sessionid2AggrInfoRDD.mapToPair(
-                new PairFunction<Tuple2<String, String>, String, String>() {
-
+        JavaPairRDD<String, String> time2aggrInfoRDD = sessionid2AggrInfoRDD
+//                .mapToPair(new PairFunction<Tuple2<String, String>, String, String>() {
+//
+//                    @Override
+//                    public Tuple2<String, String> call(Tuple2<String, String> tuple2) throws Exception {
+//
+//                        String aggrInfo = tuple2._2;
+//                        String startTime = StringUtils.getFieldFromConcatString(aggrInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_START_TIME);
+//                        String dateHour = DateUtils.getDateHour(startTime);
+//
+//                        return new Tuple2<String, String>(dateHour, aggrInfo);
+//                    }
+//                });
+                .mapPartitionsToPair(new PairFlatMapFunction<Iterator<Tuple2<String, String>>, String, String>() {
                     @Override
-                    public Tuple2<String, String> call(Tuple2<String, String> tuple2) throws Exception {
+                    public Iterable<Tuple2<String, String>> call(Iterator<Tuple2<String, String>> iterator) throws Exception {
+                        List<Tuple2<String, String>> list = new ArrayList<>();
 
-                        String aggrInfo = tuple2._2;
-                        String startTime = StringUtils.getFieldFromConcatString(aggrInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_START_TIME);
-                        String dateHour = DateUtils.getDateHour(startTime);
+                        while (iterator.hasNext()) {
 
-                        return new Tuple2<String, String>(dateHour, aggrInfo);
+                            Tuple2<String, String> tuple = iterator.next();
+
+                            String aggrInfo = tuple._2;
+                            String startTime = StringUtils.getFieldFromConcatString(aggrInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_START_TIME);
+                            String dateHour = DateUtils.getDateHour(startTime);
+
+                            list.add(new Tuple2<String, String>(dateHour, aggrInfo));
+
+                        }
+
+                        return list;
                     }
                 });
         // 得到每小时的session数量
