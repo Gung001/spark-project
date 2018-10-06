@@ -794,7 +794,13 @@ public class UserVisitSessionAnalyzeSpark {
      */
     private static JavaPairRDD<Long, Long> getClickCategoryCount(JavaPairRDD<String, Row> sessionId2detailRDD) {
 
-        // 过滤掉无效数据
+        /**
+         * 特别说明：
+         * 这是对完整数据的过滤，过滤后得到点击行为的数据，其只占总数据的一小部分
+         * 所以过滤后的RDD每个partition的数据量可能会很不均匀，而且数据量肯定会变少
+         *
+         * so 可以用一下 coalesce
+         */
         JavaPairRDD<String, Row> clickActionRDD = sessionId2detailRDD.filter(
                 new Function<Tuple2<String, Row>, Boolean>() {
                     @Override
@@ -802,7 +808,13 @@ public class UserVisitSessionAnalyzeSpark {
                         Row row = tuple._2;
                         return row.get(6) != null ? true : false;
                     }
-                });
+                }).coalesce(100);
+
+        /**
+         * coalesce 操作说明：
+         * local模式下不用取设置分区和并行度
+         * local模式本身就是进程内模拟的集群来执行，本身性能就很高而且对并行度和partition数量都有一定的优化
+         */
 
 
         JavaPairRDD<Long, Long> clickCategoryIdRDD = clickActionRDD
