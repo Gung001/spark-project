@@ -146,7 +146,7 @@ public class UserVisitSessionAnalyzeSpark {
         // 与用户信息数据，进行join
         // 然后就可以获取到session粒度的数据，同时呢，数据里面还包含了session对应的user的信息
         // 到这里为止，获取的数据是<sessionid,(sessionid,searchKeywords,clickCategoryIds,age,professional,city,sex)>
-        JavaPairRDD<String, String> sessionId2AggrInfoRDD = aggregateBySession(sqlContext, sessionId2ActionRDD);
+        JavaPairRDD<String, String> sessionId2AggrInfoRDD = aggregateBySession(sc, sqlContext, sessionId2ActionRDD);
         System.out.println("====总共数据：" + sessionId2AggrInfoRDD.count());
         for (Tuple2<String, String> tuple : sessionId2AggrInfoRDD.take(1)) {
             System.out.println("==数据格式：" + tuple._2);
@@ -1466,12 +1466,14 @@ public class UserVisitSessionAnalyzeSpark {
     /**
      * 对行为数据按session粒度进行聚合
      *
+     *
+     * @param sc
      * @param sqlContext
      * @param sessionid2ActionRDD 行为数据RDD
      * @return session粒度聚合数据
      */
     private static JavaPairRDD<String, String> aggregateBySession(
-            SQLContext sqlContext, JavaPairRDD<String, Row> sessionid2ActionRDD) {
+            JavaSparkContext sc, SQLContext sqlContext, JavaPairRDD<String, Row> sessionid2ActionRDD) {
         // 现在actionRDD中的元素是Row，一个Row就是一行用户访问行为记录，比如一次点击或者搜索
         // 对行为数据按session粒度进行分组
         JavaPairRDD<String, Iterable<Row>> sessionid2ActionsRDD =
@@ -1642,6 +1644,49 @@ public class UserVisitSessionAnalyzeSpark {
                     }
 
                 });
+
+        /**
+         * 上面的join，解决数据倾斜比较适合采用reduce join 转化 map join 的方式
+         *
+         * userid2PartAggrInfoRDD 可能数据量还是比较大，比如：1000W
+         * userid2InfoRDD 可能数据比较小，比如：10W
+         */
+//        List<Tuple2<Long, Row>> userInfos = userid2InfoRDD.collect();
+//        final Broadcast<List<Tuple2<Long, Row>>> userInfosBroadcast = sc.broadcast(userInfos);
+//        JavaPairRDD<String, String> tunedRDD = userid2PartAggrInfoRDD.mapToPair(
+//                new PairFunction<Tuple2<Long, String>, String, String>() {
+//                    @Override
+//                    public Tuple2<String, String> call(Tuple2<Long, String> tuple) throws Exception {
+//
+//                        // 得到用户信息
+//                        List<Tuple2<Long, Row>> userInfos = userInfosBroadcast.value();
+//                        Map<Long, Row> userInfoMap = new HashMap<>();
+//                        for (Tuple2<Long, Row> userInfo : userInfos) {
+//                            userInfoMap.put(userInfo._1, userInfo._2);
+//                        }
+//
+//                        // 得到对应的用户信息
+//                        Row userInfoRow = userInfoMap.get(tuple._1);
+//                        String partAggrInfo = tuple._2;
+//
+//                        String sessionid = StringUtils.getFieldFromConcatString(
+//                                partAggrInfo, Constants.SPLIT_SYMBAL_VERTICAL_BAR, Constants.FIELD_SESSION_ID);
+//
+//                        int age = userInfoRow.getInt(3);
+//                        String professional = userInfoRow.getString(4);
+//                        String city = userInfoRow.getString(5);
+//                        String sex = userInfoRow.getString(6);
+//
+//                        String fullAggrInfo = partAggrInfo + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_AGE + Constants.SYMBAL_EQUALS_SIGN + age + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_PROFESSIONAL + Constants.SYMBAL_EQUALS_SIGN + professional + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_CITY + Constants.SYMBAL_EQUALS_SIGN + city + Constants.SYMBAL_VERTICAL_BAR
+//                                + Constants.FIELD_SEX + Constants.SYMBAL_EQUALS_SIGN + sex;
+//
+//                        return new Tuple2<String, String>(sessionid, fullAggrInfo);
+//                    }
+//                });
+
 
         return sessionid2FullAggrInfoRDD;
     }
