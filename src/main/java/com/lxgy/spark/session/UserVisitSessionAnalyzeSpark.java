@@ -68,6 +68,8 @@ public class UserVisitSessionAnalyzeSpark {
         SparkConf conf = new SparkConf()
                 .setAppName(Constants.SPARK_APP_NAME)
                 .setMaster("local")
+                /**并行度*/
+//				.set("spark.default.parallelism", "100")
                 /** jvm 调优 ：调节cache操作内存占比 */
                 .set("spark.storage.memoryFraction", "0.5")
                 /**合并map端输出文件*/
@@ -1372,6 +1374,13 @@ public class UserVisitSessionAnalyzeSpark {
                         + "and date<='" + endDate + "'";
 
         DataFrame actionDF = sqlContext.sql(sql);
+
+        /**
+         * 特别说明：
+         * 这里 有可能发生Spark SQL默认给第一个stage设置了20个task，
+         * 但是根据数据量以及算法的复杂度需要1000个task并行执行
+         */
+//        return actionDF.javaRDD().repartition(1000);
 
         return actionDF.javaRDD();
     }
