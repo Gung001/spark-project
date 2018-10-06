@@ -78,6 +78,13 @@ public class UserVisitSessionAnalyzeSpark {
                 .set("spark.shuffle.file.buffer", "64")
                 /**reduce端聚合内存占比*/
                 .set("spark.shuffle.memoryFraction", "0.3")
+                /**reduce 缓冲大小调节*/
+                .set("spark.reducer.maxSizeInFlight", "24")
+                /**shuffle文件拉去重试次数，默认三次*/
+                .set("spark.shuffle.io.maxRetries", "60")
+                /**shuffle文件每次拉取文件间隔时间，默认5s*/
+                .set("spark.shuffle.io.retryWait", "60")
+                /**更改默认的序列化方式*/
                 .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                 .registerKryoClasses(new Class[]{
                         CategorySortKey.class,
