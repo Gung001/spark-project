@@ -870,7 +870,7 @@ public class UserVisitSessionAnalyzeSpark {
         /**
          * 有可能出现数据倾斜
          *
-         * 提升shuffle reduce端并行度
+         * 提升shuffle redu ce端并行度
          */
 //        JavaPairRDD<Long, Long> clickCategoryId2CountRDD = clickCategoryIdRDD.reduceByKey(
 //                new Function2<Long, Long, Long>() {
@@ -879,6 +879,52 @@ public class UserVisitSessionAnalyzeSpark {
 //                        return v1 + v2;
 //                    }
 //                },1000);
+
+        /**
+         * 数据倾斜处理方案之随机key
+         */
+//        // 第一步：给每一个key打上随机数
+//        JavaPairRDD<String, Long> mappedClickCategoryIdRDD = clickCategoryIdRDD.mapToPair(new PairFunction<Tuple2<Long, Long>, String, Long>() {
+//            @Override
+//            public Tuple2<String, Long> call(Tuple2<Long, Long> tuple) throws Exception {
+//
+//                Random random = new Random();
+//                int prefix = random.nextInt(10);
+//                return new Tuple2<String, Long>(prefix + "_" + tuple._1, tuple._2);
+//            }
+//        });
+//
+//        // 第二步：进行第一轮聚合
+//        JavaPairRDD<String, Long> firstAggrRDD = mappedClickCategoryIdRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1 + v2;
+//                    }
+//                }
+//        );
+//
+//        // 第三步：去掉每个key的前缀
+//        JavaPairRDD<Long, Long> restoredRDD = firstAggrRDD.mapToPair(
+//                new PairFunction<Tuple2<String, Long>, Long, Long>() {
+//                    @Override
+//                    public Tuple2<Long, Long> call(Tuple2<String, Long> tuple) throws Exception {
+//
+//                        Long categoryId = Long.valueOf(tuple._1.split(Constants.SPLIT_SYMBAL_UNDERLINE_BAR)[1]);
+//
+//                        return new Tuple2<>(categoryId, tuple._2);
+//                    }
+//                });
+//
+//        // 第四步：做第二轮全局聚合
+//        JavaPairRDD<Long, Long> glabolAggrRDD = restoredRDD.reduceByKey(
+//                new Function2<Long, Long, Long>() {
+//                    @Override
+//                    public Long call(Long v1, Long v2) throws Exception {
+//                        return v1 + v2;
+//                    }
+//                }
+//        );
 
         return clickCategoryId2CountRDD;
     }
