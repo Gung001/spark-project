@@ -70,6 +70,12 @@ public class UserVisitSessionAnalyzeSpark {
                 .setMaster("local")
                 /** jvm 调优 ：调节cache操作内存占比 */
                 .set("spark.storage.memoryFraction", "0.5")
+                /**合并map端输出文件*/
+                .set("spark.shuffle.consolidateFiles", "true")
+                /**map端缓冲内存*/
+                .set("spark.shuffle.file.buffer", "64")
+                /**reduce端聚合内存占比*/
+                .set("spark.shuffle.memoryFraction", "0.3")
                 .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
                 .registerKryoClasses(new Class[]{
                         CategorySortKey.class,
