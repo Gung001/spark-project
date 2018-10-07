@@ -65,4 +65,13 @@ public class DAOFactory {
         return new Top10CategorySessionDAOImpl();
     }
 
+
+    /**
+     * 获取IPageSplitConvertRateDAO
+     *
+     * @return DAO
+     */
+    public static IPageSplitConvertRateDAO getPageSplitConvertRateDAO() {
+        return new PageSplitConvertRateDAOImpl();
+    }
 }

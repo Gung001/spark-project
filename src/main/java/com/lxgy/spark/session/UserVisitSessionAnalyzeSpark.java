@@ -18,7 +18,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -27,7 +26,6 @@ import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.hive.HiveContext;
 import org.apache.spark.storage.StorageLevel;
 import scala.Tuple2;
 
@@ -66,8 +64,7 @@ public class UserVisitSessionAnalyzeSpark {
 
         // 构建Spark上下文
         SparkConf conf = new SparkConf()
-                .setAppName(Constants.SPARK_APP_NAME)
-                .setMaster("local")
+                .setAppName(Constants.SPARK_APP_NAME_SESSION)
                 /**并行度*/
 //				.set("spark.default.parallelism", "100")
                 /** jvm 调优 ：调节cache操作内存占比 */
@@ -90,6 +87,8 @@ public class UserVisitSessionAnalyzeSpark {
                         CategorySortKey.class,
                         IntList.class
                 });
+        SparkUtils.setMaster(conf);
+
         /**
          * registerKryoClasses
          * 为了使 KryoSerializer 达到最佳性能，需要注册我们自定义的类，比如：CategorySortKey
@@ -101,10 +100,10 @@ public class UserVisitSessionAnalyzeSpark {
         // 设置checkpoint机制，文件存储在HDFS上的路径
 //        sc.checkpointFile("hdfs://")
 
-        SQLContext sqlContext = getSQLContext(sc.sc());
+        SQLContext sqlContext = SparkUtils.getSQLContext(sc.sc());
 
         // 生成模拟测试数据
-        mockData(sc, sqlContext);
+        SparkUtils.mockData(sc, sqlContext);
 
         // 创建需要使用的DAO组件
         ITaskDAO taskDAO = DAOFactory.getTaskDAO();
@@ -118,7 +117,7 @@ public class UserVisitSessionAnalyzeSpark {
         JSONObject taskParam = JSONObject.parseObject(task.getTaskParam());
 
         // 如果要进行session粒度的数据聚合，首先要从user_visit_action表中，查询出来指定日期范围内的行为数据
-        JavaRDD<Row> actionRDD = getActionRDDByDateRange(sqlContext, taskParam);
+        JavaRDD<Row> actionRDD = SparkUtils.getActionRDDByDateRange(sqlContext, taskParam);
 
         // 获取sessionId映射的明细
         JavaPairRDD<String, Row> sessionId2ActionRDD = getSessionId2ActionRDD(actionRDD);
@@ -1403,23 +1402,6 @@ public class UserVisitSessionAnalyzeSpark {
     }
 
     /**
-     * 获取SQLContext
-     * 如果是在本地测试环境的话，那么就生成SQLContext对象
-     * 如果是在生产环境运行的话，那么就生成HiveContext对象
-     *
-     * @param sc SparkContext
-     * @return SQLContext
-     */
-    private static SQLContext getSQLContext(SparkContext sc) {
-        boolean local = ConfigurationManager.getBoolean(Constants.SPARK_LOCAL);
-        if (local) {
-            return new SQLContext(sc);
-        } else {
-            return new HiveContext(sc);
-        }
-    }
-
-    /**
      * 生成模拟数据（只有本地模式，才会去生成模拟数据）
      *
      * @param sc
@@ -1430,37 +1412,6 @@ public class UserVisitSessionAnalyzeSpark {
         if (local) {
             MockData.mock(sc, sqlContext);
         }
-    }
-
-    /**
-     * 获取指定日期范围内的用户访问行为数据
-     *
-     * @param sqlContext SQLContext
-     * @param taskParam  任务参数
-     * @return 行为数据RDD
-     */
-    private static JavaRDD<Row> getActionRDDByDateRange(
-            SQLContext sqlContext, JSONObject taskParam) {
-
-        String startDate = ParamUtils.getParam(taskParam, Constants.PARAM_START_DATE);
-        String endDate = ParamUtils.getParam(taskParam, Constants.PARAM_END_DATE);
-
-        String sql =
-                "select * "
-                        + "from user_visit_action "
-                        + "where date>='" + startDate + "' "
-                        + "and date<='" + endDate + "'";
-
-        DataFrame actionDF = sqlContext.sql(sql);
-
-        /**
-         * 特别说明：
-         * 这里 有可能发生Spark SQL默认给第一个stage设置了20个task，
-         * 但是根据数据量以及算法的复杂度需要1000个task并行执行
-         */
-//        return actionDF.javaRDD().repartition(1000);
-
-        return actionDF.javaRDD();
     }
 
     /**

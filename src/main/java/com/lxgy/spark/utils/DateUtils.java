@@ -145,4 +145,11 @@ public class DateUtils {
 		return null;
 	}
 
+	/**
+	 * 获取当前格式化后的日期
+	 * @return
+	 */
+	public static String getCurDateTime(){
+		return TIME_FORMAT.format(new Date());
+	}
 }
