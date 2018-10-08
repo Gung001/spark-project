@@ -18,6 +18,7 @@ public interface Constants {
     String SPARK_LOCAL = "spark.local";
 
     String SPARK_APP_NAME_SESSION = "UserVisitSessionAnalyzeSpark";
+    String SPARK_APP_NAME_PRODUCT = "AreaTop3ProductSpark";
     String SPARK_APP_NAME_PAGE = "PageOneStepConvertRateSpark";
     String FIELD_SESSION_ID = "sessionId";
     String FIELD_SEARCH_KEYWORD = "searchKeyword";

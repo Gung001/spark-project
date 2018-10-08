@@ -74,4 +74,15 @@ public class DAOFactory {
     public static IPageSplitConvertRateDAO getPageSplitConvertRateDAO() {
         return new PageSplitConvertRateDAOImpl();
     }
+
+
+
+    /**
+     * 获取IAreaTop3ProductDAO
+     *
+     * @return DAO
+     */
+    public static IAreaTop3ProductDAO getAreaTop3ProductDAO() {
+        return new AreaTop3ProductDAOImpl();
+    }
 }
