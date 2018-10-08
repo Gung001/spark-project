@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 
 /**
  * 参数工具类
- * @author Administrator
+ * @author Gryant
  *
  */
 public class ParamUtils {

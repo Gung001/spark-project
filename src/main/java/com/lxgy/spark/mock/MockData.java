@@ -15,7 +15,7 @@ import java.util.*;
 
 /**
  * 模拟数据程序
- * @author Administrator
+ * @author Gryant
  *
  */
 public class MockData {

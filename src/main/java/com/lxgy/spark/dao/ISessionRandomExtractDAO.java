@@ -4,7 +4,7 @@ import com.lxgy.spark.domain.SessionRandomExtract;
 
 /**
  * session随机抽取模块DAO接口
- * @author Administrator
+ * @author Gryant
  *
  */
 public interface ISessionRandomExtractDAO {

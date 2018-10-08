@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * 数字格工具类
  *
- * @author Administrator
+ * @author Gryant
  */
 public class NumberUtils {
 

@@ -85,4 +85,14 @@ public class DAOFactory {
     public static IAreaTop3ProductDAO getAreaTop3ProductDAO() {
         return new AreaTop3ProductDAOImpl();
     }
+
+
+    /**
+     * 获取IAdUserClickCountDAO
+     *
+     * @return DAO
+     */
+    public static IAdUserClickCountDAO getAdUserClickCountDAO() {
+        return new AdUserClickCountDAOImpl();
+    }
 }

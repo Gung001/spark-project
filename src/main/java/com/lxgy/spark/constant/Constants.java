@@ -3,7 +3,7 @@ package com.lxgy.spark.constant;
 /**
  * 常量接口
  *
- * @author Administrator
+ * @author Gryant
  */
 public interface Constants {
 
@@ -16,10 +16,13 @@ public interface Constants {
     String JDBC_USER = "jdbc.user";
     String JDBC_PASSWORD = "jdbc.password";
     String SPARK_LOCAL = "spark.local";
+    String KAFKA_METADATA_BROKER_LIST = "kafka.metadata.broker.list";
+    String KAFKA_TOPICS = "kafka.topics";
 
     String SPARK_APP_NAME_SESSION = "UserVisitSessionAnalyzeSpark";
     String SPARK_APP_NAME_PRODUCT = "AreaTop3ProductSpark";
     String SPARK_APP_NAME_PAGE = "PageOneStepConvertRateSpark";
+    String SPARK_APP_NAME_AD = "AdClickRealTimeStatSpark";
     String FIELD_SESSION_ID = "sessionId";
     String FIELD_SEARCH_KEYWORD = "searchKeyword";
     String FIELD_CLICK_CATEGORY = "clickCategory";
@@ -70,6 +73,10 @@ public interface Constants {
      * 逗号 ,
      */
     String SPLIT_SYMBAL_COMMA = ",";
+    /**
+     * 逗号 ,
+     */
+    String SPLIT_SYMBAL_SPACE = " ";
 
     String SESSION_COUNT = "session_count";
     String TIME_PERIOD_1s_3s = "1s_3s";

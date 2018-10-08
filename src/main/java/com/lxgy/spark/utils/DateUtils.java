@@ -9,7 +9,7 @@ import java.util.Date;
 
 /**
  * 日期时间工具类
- * @author Administrator
+ * @author Gryant
  *
  */
 public class DateUtils {
@@ -18,6 +18,8 @@ public class DateUtils {
 			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final SimpleDateFormat DATE_FORMAT = 
 			new SimpleDateFormat("yyyy-MM-dd");
+	public static final SimpleDateFormat DATE_KEY_FORMAT =
+			new SimpleDateFormat("yyyyMMdd");
 	
 	/**
 	 * 判断一个时间是否在另一个时间之前
@@ -152,4 +154,27 @@ public class DateUtils {
 	public static String getCurDateTime(){
 		return TIME_FORMAT.format(new Date());
 	}
+
+	/**
+	 * 格式化key
+	 * @return
+	 */
+	public static String formatDateKey(Date date){
+		return DATE_KEY_FORMAT.format(date);
+	}
+
+
+	/**
+	 * 格式化key
+	 * @return
+	 */
+	public static Date formatDateKey(String date){
+		try {
+			return DATE_KEY_FORMAT.parse(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

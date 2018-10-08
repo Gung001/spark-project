@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 
 /**
  * 任务管理DAO实现类
- * @author Administrator
+ * @author Gryant
  *
  */
 public class TaskDAOImpl implements ITaskDAO {
