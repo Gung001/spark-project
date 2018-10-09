@@ -77,8 +77,8 @@ public class AdUserClickCountDAOImpl implements IAdUserClickCountDAO {
 
 
 
-		// 执行批量修改
-		String updateSQL = "update ad_user_click_count set click_count = ? " +
+		// 执行批量修改（点击次数需要在上一次的基础上累加）
+		String updateSQL = "update ad_user_click_count set click_count = click_count + ? " +
 				"where date = ? and user_id = ? and ad_id = ?";
 		List<Object[]> updateParamsList = new ArrayList<>();
 
@@ -95,4 +95,28 @@ public class AdUserClickCountDAOImpl implements IAdUserClickCountDAO {
 
 		jdbcHelper.executeBatch(updateSQL, updateParamsList);
 	}
+
+	@Override
+	public int findClickCountByMultiKey(String date, Integer userId, Integer adId) {
+
+		String sql = "select click_count from ad_user_click_count " +
+				"where date = ? and user_id = ? and ad_id = ? ";
+
+		Object[] params = new Object[]{date, userId, adId};
+
+		final AdUserClickCountQueryResult result = new AdUserClickCountQueryResult();
+
+		JDBCHelper.getInstance().executeQuery(sql, params, new JDBCHelper.QueryCallback() {
+			@Override
+			public void process(ResultSet rs) throws Exception {
+				if (rs.next()) {
+					int count = rs.getInt(1);
+					result.setCount(count);
+				}
+			}
+		});
+
+		return result.getCount();
+	}
+
 }

@@ -177,4 +177,11 @@ public class DateUtils {
 		return null;
 	}
 
+	/**
+	 * 格式化key
+	 * @return
+	 */
+	public static String formatTimeMinute(Date date){
+		return new SimpleDateFormat("yyyyMMddHHmm").format(date);
+	}
 }

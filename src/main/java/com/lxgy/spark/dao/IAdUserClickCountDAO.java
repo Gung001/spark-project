@@ -13,10 +13,18 @@ import java.util.List;
 public interface IAdUserClickCountDAO {
 
 	/**
-	 * 插入Top10
+	 * 保存广告点击量
 	 *
 	 * @param adUserClickCounts
 	 */
 	void updateBatch(List<AdUserClickCount> adUserClickCounts);
-	
+
+	/**
+	 * 查询key下对应的点击次数
+	 * @param date
+	 * @param userId
+	 * @param adId
+	 * @return
+	 */
+	int findClickCountByMultiKey(String date, Integer userId, Integer adId);
 }

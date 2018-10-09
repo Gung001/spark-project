@@ -95,4 +95,43 @@ public class DAOFactory {
     public static IAdUserClickCountDAO getAdUserClickCountDAO() {
         return new AdUserClickCountDAOImpl();
     }
+
+    /**
+     * 获取IAdBlackListDAO
+     *
+     * @return DAO
+     */
+    public static IAdBlackListDAO getAdBlackListDAO() {
+        return new AdBlackListDAOImpl();
+    }
+
+    /**
+     * 获取IAdStatDAO
+     *
+     * @return DAO
+     */
+    public static IAdStatDAO getAdStatDAO() {
+        return new AdStatDAOImpl();
+    }
+
+    /**
+     * 获取IAdProvinceTop3DAO
+     *
+     * @return DAO
+     */
+    public static IAdProvinceTop3DAO getAdProvinceTop3DAO() {
+
+        return new AdProvinceTop3DAOImpl();
+    }
+
+
+    /**
+     * 获取IAdClickTrendDAO
+     *
+     * @return DAO
+     */
+    public static IAdClickTrendDAO getAdClickTrendDAO() {
+        return new AdClickTrendDAOImpl();
+    }
+
 }
