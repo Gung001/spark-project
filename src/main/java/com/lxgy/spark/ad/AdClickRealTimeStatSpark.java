@@ -55,7 +55,7 @@ public class AdClickRealTimeStatSpark {
 
         // 构建Kafka参数map，重要是存放你要连接的Kafka集群的地址
         Map<String, String> kafkaParams = new HashMap<>();
-        kafkaParams.put(Constants.KAFKA_METADATA_BROKER_LIST,
+        kafkaParams.put("metadata.broker.list",
                 ConfigurationManager.getProperty(Constants.KAFKA_METADATA_BROKER_LIST));
 
         // 构建topic set
