@@ -39,7 +39,9 @@ public class AdClickRealTimeStatSpark {
         SparkConf conf = new SparkConf()
                 .setAppName(Constants.SPARK_APP_NAME_AD)
                 .setMaster("local[2]")
+//                .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 //                .set("spark.streaming.receiver.writeAheadLog.enable", "true")
+//                .set("spark.streaming.blockInterval", "50")
                 ;
 
         // 每隔5分钟收集最近5秒内的数据源
@@ -78,6 +80,9 @@ public class AdClickRealTimeStatSpark {
 
         // 刚刚接收到原始的用户点击行为日志后，剔除掉和名单中的用户点击的数据
         final JavaPairDStream<String, String> filteredAdRealTimeLogDStream = filterByBlackList(adRealTimeLogDStream);
+
+        // 重复区
+//        filteredAdRealTimeLogDStream.repartition(1000);
 
         // 生成动态的黑名单
         generateDynamicBlackList(filteredAdRealTimeLogDStream);
