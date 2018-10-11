@@ -4,7 +4,7 @@ import com.lxgy.spark.constant.Constants;
 
 /**
  * 校验工具类
- * @author Administrator
+ * @author Gryant
  *
  */
 public class ValidUtils {

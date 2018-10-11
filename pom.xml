@@ -87,6 +87,13 @@
       <version>1.1.41</version>
     </dependency>
 
+    <!--扩展Java标准集合框架-->
+    <dependency>
+      <groupId>fastutil</groupId>
+      <artifactId>fastutil</artifactId>
+      <version>5.0.9</version>
+    </dependency>
+
   </dependencies>
 
   <build>

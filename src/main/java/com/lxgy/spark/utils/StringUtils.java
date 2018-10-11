@@ -5,7 +5,7 @@ import com.lxgy.spark.constant.Constants;
 /**
  * 字符串工具类
  *
- * @author Administrator
+ * @author Gryant
  */
 public class StringUtils {
 

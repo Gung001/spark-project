@@ -3,11 +3,13 @@ package com.lxgy.spark.jdbc;
 
 import com.lxgy.spark.conf.ConfigurationManager;
 import com.lxgy.spark.constant.Constants;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,7 +21,7 @@ import java.util.List;
  * 比如“张三”、“com.mysql.jdbc.Driver”
  * 所有这些东西，都需要通过常量来封装和使用
  * 
- * @author Administrator
+ * @author Gryant
  *
  */
 public class JDBCHelper {
@@ -142,6 +144,12 @@ public class JDBCHelper {
 		PreparedStatement pstmt = null;
 		
 		try {
+
+			if (CollectionUtils.isEmpty(Arrays.asList(params))) {
+				return rtn;
+			}
+
+
 			conn = getConnection();
 			pstmt = conn.prepareStatement(sql);
 			
@@ -174,6 +182,11 @@ public class JDBCHelper {
 		ResultSet rs = null;
 		
 		try {
+
+			if (CollectionUtils.isEmpty(Arrays.asList(params))) {
+				return;
+			}
+
 			conn = getConnection();
 			pstmt = conn.prepareStatement(sql);
 			
@@ -218,6 +231,11 @@ public class JDBCHelper {
 		PreparedStatement pstmt = null;
 		
 		try {
+
+			if (CollectionUtils.isEmpty(paramsList)) {
+				return rtn;
+			}
+
 			conn = getConnection();
 			
 			// 第一步：使用Connection对象，取消自动提交
@@ -246,7 +264,7 @@ public class JDBCHelper {
 	
 	/**
 	 * 静态内部类：查询回调接口
-	 * @author Administrator
+	 * @author Gryant
 	 *
 	 */
 	public static interface QueryCallback {

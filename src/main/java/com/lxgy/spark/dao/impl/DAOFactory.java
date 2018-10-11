@@ -1,10 +1,7 @@
 package com.lxgy.spark.dao.impl;
 
 
-import com.lxgy.spark.dao.ISessionAggrStatDAO;
-import com.lxgy.spark.dao.ISessionDetailDAO;
-import com.lxgy.spark.dao.ISessionRandomExtractDAO;
-import com.lxgy.spark.dao.ITaskDAO;
+import com.lxgy.spark.dao.*;
 
 /**
  * DAO工厂类
@@ -48,6 +45,93 @@ public class DAOFactory {
      */
     public static ISessionDetailDAO getSessionDetailDAO() {
         return new SessionDetailDAOImpl();
+    }
+
+    /**
+     * 获取Top10 DAO
+     *
+     * @return DAO
+     */
+    public static ITop10CategoryDAO getTop10CategoryDAO() {
+        return new Top10CategoryDAOImpl();
+    }
+
+    /**
+     * 获取Top10Session DAO
+     *
+     * @return DAO
+     */
+    public static ITop10CategorySessionDAO getTop10CategorySessionDAO() {
+        return new Top10CategorySessionDAOImpl();
+    }
+
+
+    /**
+     * 获取IPageSplitConvertRateDAO
+     *
+     * @return DAO
+     */
+    public static IPageSplitConvertRateDAO getPageSplitConvertRateDAO() {
+        return new PageSplitConvertRateDAOImpl();
+    }
+
+
+
+    /**
+     * 获取IAreaTop3ProductDAO
+     *
+     * @return DAO
+     */
+    public static IAreaTop3ProductDAO getAreaTop3ProductDAO() {
+        return new AreaTop3ProductDAOImpl();
+    }
+
+
+    /**
+     * 获取IAdUserClickCountDAO
+     *
+     * @return DAO
+     */
+    public static IAdUserClickCountDAO getAdUserClickCountDAO() {
+        return new AdUserClickCountDAOImpl();
+    }
+
+    /**
+     * 获取IAdBlackListDAO
+     *
+     * @return DAO
+     */
+    public static IAdBlackListDAO getAdBlackListDAO() {
+        return new AdBlackListDAOImpl();
+    }
+
+    /**
+     * 获取IAdStatDAO
+     *
+     * @return DAO
+     */
+    public static IAdStatDAO getAdStatDAO() {
+        return new AdStatDAOImpl();
+    }
+
+    /**
+     * 获取IAdProvinceTop3DAO
+     *
+     * @return DAO
+     */
+    public static IAdProvinceTop3DAO getAdProvinceTop3DAO() {
+
+        return new AdProvinceTop3DAOImpl();
+    }
+
+
+    /**
+     * 获取IAdClickTrendDAO
+     *
+     * @return DAO
+     */
+    public static IAdClickTrendDAO getAdClickTrendDAO() {
+        return new AdClickTrendDAOImpl();
     }
 
 }

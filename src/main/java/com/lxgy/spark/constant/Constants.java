@@ -3,7 +3,7 @@ package com.lxgy.spark.constant;
 /**
  * 常量接口
  *
- * @author Administrator
+ * @author Gryant
  */
 public interface Constants {
 
@@ -16,8 +16,13 @@ public interface Constants {
     String JDBC_USER = "jdbc.user";
     String JDBC_PASSWORD = "jdbc.password";
     String SPARK_LOCAL = "spark.local";
+    String KAFKA_METADATA_BROKER_LIST = "kafka.metadata.broker.list";
+    String KAFKA_TOPICS = "kafka.topics";
 
-    String SPARK_APP_NAME = "UserVisitSessionAnalyzeSpark";
+    String SPARK_APP_NAME_SESSION = "UserVisitSessionAnalyzeSpark";
+    String SPARK_APP_NAME_PRODUCT = "AreaTop3ProductSpark";
+    String SPARK_APP_NAME_PAGE = "PageOneStepConvertRateSpark";
+    String SPARK_APP_NAME_AD = "AdClickRealTimeStatSpark";
     String FIELD_SESSION_ID = "sessionId";
     String FIELD_SEARCH_KEYWORD = "searchKeyword";
     String FIELD_CLICK_CATEGORY = "clickCategory";
@@ -29,6 +34,11 @@ public interface Constants {
     String FIELD_STEP_LENGTH = "stepLength";
     String FIELD_START_TIME = "startTime";
 
+    String FIELD_COUNT_CATEGORY_ID = "categoryId";
+    String FIELD_COUNT_CLICK_CATEGORY = "clickCategory";
+    String FIELD_COUNT_ORDER_CATEGORY = "orderCategory";
+    String FIELD_COUNT_PAY_CATEGORY = "payCategory";
+
 
     String PARAM_START_DATE = "startDate";
     String PARAM_END_DATE = "endDate";
@@ -39,6 +49,7 @@ public interface Constants {
     String PARAM_SEX = "sex";
     String PARAM_KEYWORDS = "keywords";
     String PARAM_CATEGORY_IDS = "categoryIds";
+    String PARAM_TARGET_PAGE_FLOW = "targetPageFlow";
 
 
     /**
@@ -58,6 +69,14 @@ public interface Constants {
      * 下划线 _
      */
     String SPLIT_SYMBAL_UNDERLINE_BAR = "_";
+    /**
+     * 逗号 ,
+     */
+    String SPLIT_SYMBAL_COMMA = ",";
+    /**
+     * 逗号 ,
+     */
+    String SPLIT_SYMBAL_SPACE = " ";
 
     String SESSION_COUNT = "session_count";
     String TIME_PERIOD_1s_3s = "1s_3s";
